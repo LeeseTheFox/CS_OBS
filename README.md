@@ -1,5 +1,6 @@
 # CS_OBS
 This is a program designed to automatically launch OBS Studio and enable the Replay Buffer feature, serving as an alternative to Nvidia ShadowPlay, but with a whitelist feature.
+
 It was completely written by ChatGPT 3.5. I did not write a single line of code, so judge accordingly.
 
 **Instructions:**
