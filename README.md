@@ -10,4 +10,4 @@ It was completely written by ChatGPT 3.5. I did not write a single line of code,
 4. Save your changes to `config.txt`;
 5. Relaunch `CS_OBS.exe`.
 
-ℹ️ CS_OBS needs to be run as an administrator, or it will not be able to hide it's window and close OBS Studio when it should.
+Important: CS_OBS needs to be run as an administrator, or it will not be able to hide it's window and close OBS Studio when it should.
