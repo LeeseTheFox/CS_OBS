@@ -239,7 +239,9 @@ int main() {
 
         if (std::any_of(isGameRunning.begin(), isGameRunning.end(), [](bool b) { return b; }) && !isObsRunning) {
             std::wstring obsExePath = obsWorkingDir + L"\\obs64.exe";
-            launchProcess(obsExePath, L"--startreplaybuffer", obsWorkingDir);
+            std::wstring launchOptions = L"--startreplaybuffer --disable-shutdown-check";
+
+            launchProcess(obsExePath, launchOptions, obsWorkingDir);
             isObsRunning = true;
         }
         else if (!std::any_of(isGameRunning.begin(), isGameRunning.end(), [](bool b) { return b; }) && isObsRunning) {
