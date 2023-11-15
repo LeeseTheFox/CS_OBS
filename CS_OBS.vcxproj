@@ -50,11 +50,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="configutil.cpp" />
     <ClCompile Include="CS_OBS.cpp" />
+    <ClCompile Include="startuputil.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="configutil.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
+    <ClInclude Include="startuputil.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CS_OBS1.rc" />

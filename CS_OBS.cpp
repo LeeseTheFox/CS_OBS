@@ -1,3 +1,5 @@
+#include "startuputil.h"
+#include "configutil.h"
 #include <iostream>
 #include <fstream>
 #include <windows.h>
@@ -12,15 +14,6 @@
 #include <tchar.h>
 
 #pragma comment(lib, "Shlwapi.lib")
-
-// Function to get the user's startup folder path
-std::wstring getUserStartupFolder() {
-    wchar_t startupFolder[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_STARTUP, NULL, 0, startupFolder))) {
-        return std::wstring(startupFolder);
-    }
-    return L"";
-}
 
 // Function to delete a file
 bool deleteFile(const std::wstring& filePath) {
@@ -106,33 +99,9 @@ bool readConfigFile(std::wstring& obsWorkingDir, int& gameCheckInterval, int& ob
 
     std::wifstream configFile(configFilePath);
     if (!configFile) {
-        // Display an info pop-up and create a new config.txt file if it doesn't exist
-        MessageBox(NULL, L"\"config.txt\" file was not found. A new one will be created. Configure it and relaunch the app.", L"CS_OBS Info", MB_ICONINFORMATION);
-
-        // Create a new config.txt file with default content
-        std::wofstream newConfigFile(configFilePath);
-        if (newConfigFile) {
-            newConfigFile << L"# Set intervals between opening/closing the game and opening/closing OBS. 1000 = 1 second. Lower values may potentially increase CPU load" << std::endl;
-            newConfigFile << L"# Delay before opening OBS after you have opened the game (default: 15000)" << std::endl;
-            newConfigFile << L"GAME_PROCESS_INTERVAL=15000" << std::endl;
-            newConfigFile << L"# Delay before closing OBS after you have closed the game (default: 5000)" << std::endl;
-            newConfigFile << L"OBS_PROCESS_INTERVAL=5000" << std::endl;
-            newConfigFile << L"" << std::endl;
-            newConfigFile << L"# Path to your OBS install folder, where the \"obs64.exe\" file is located" << std::endl;
-            newConfigFile << L"# Example:" << std::endl;
-            newConfigFile << L"# OBS_WORKING_DIR=C:\\Program Files\\obs-studio\\bin\\64bit" << std::endl;
-            newConfigFile << L"OBS_WORKING_DIR=" << std::endl;
-            newConfigFile << L"" << std::endl;
-            newConfigFile << L"# Enable automatic start on boot (1 for enabled, 0 for disabled)" << std::endl;
-            newConfigFile << L"ADD_TO_STARTUP=0" << std::endl;
-            newConfigFile << L"" << std::endl;
-            newConfigFile << L"# Add the names of game executables (process file name), one per line" << std::endl;
-            newConfigFile << L"# Make sure to include the .exe file extension" << std::endl;
-            newConfigFile << L"" << std::endl;
-            newConfigFile.close();
+        if (!createDefaultConfigFile(configFilePath)) {
+            exit(0); // Terminate the program
         }
-
-        exit(0); // Terminate the program
     }
 
     gameProcessNames.clear();
@@ -157,43 +126,6 @@ bool readConfigFile(std::wstring& obsWorkingDir, int& gameCheckInterval, int& ob
     }
 
     return true;
-}
-
-// Function to add the program to the user's startup folder using a batch file
-bool addToStartupFolderWithBatchFile(const std::wstring& programPath) {
-    std::wstring startupFolder = getUserStartupFolder();
-    if (!startupFolder.empty()) {
-        // Construct the full path to the batch file
-        std::wstring batchFilePath = startupFolder + L"\\CS_OBS_Startup.bat";
-
-        std::wofstream batchFile(batchFilePath);
-        if (batchFile) {
-            // Get the current working directory (where the program is located)
-            wchar_t currentDir[MAX_PATH];
-            GetCurrentDirectory(MAX_PATH, currentDir);
-
-            // Add commands to the batch file to run the program as administrator from its current location
-            batchFile << L"@echo off" << std::endl;
-            batchFile << L"cd /d \"" << currentDir << L"\"" << std::endl;
-            batchFile << L"start \"\" \"CS_OBS.exe\"" << std::endl;
-            batchFile << L"exit" << std::endl;
-            batchFile.close();
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// Function to delete the batch file from the user's startup folder
-bool deleteStartupBatchFile() {
-    std::wstring startupFolder = getUserStartupFolder();
-    if (!startupFolder.empty()) {
-        std::wstring batchFilePath = startupFolder + L"\\CS_OBS_Startup.bat";
-        return deleteFile(batchFilePath);
-    }
-    return false;
 }
 
 int main() {
