@@ -1,0 +1,17 @@
+# Set intervals between opening/closing the game and opening/closing OBS. 1000 = 1 second. Lower values may potentially increase CPU load
+# Delay before opening OBS after you have opened the game (default: 15000)
+GAME_PROCESS_INTERVAL=15000
+# Delay before closing OBS after you have closed the game (default: 5000)
+OBS_PROCESS_INTERVAL=5000
+
+# Path to your OBS install folder, where the "obs64.exe" file is located
+# Example:
+# OBS_WORKING_DIR=C:\Program Files\obs-studio\bin\64bit
+OBS_WORKING_DIR=C:\Program Files\obs-studio\bin\64bit
+
+# Enable automatic start on boot (1 for enabled, 0 for disabled)
+ADD_TO_STARTUP=0
+
+# Add the names of game executables (process file name), one per line
+# Make sure to include the .exe file extension
+Discovery.exe
