@@ -11,6 +11,12 @@ CS_OBS is a simple tool that automatically controls OBS Studio's Replay Buffer b
 - Can be paused when you don't want it to run
 - Can start with Windows if you want
 
+## Prerequisites
+
+Before using CS_OBS, ensure that you have .NET 6.0 installed on your system. You can download it from the official .NET website:
+
+- [Download .NET 6.0 Runtime]([https://dotnet.microsoft.com/download/dotnet](https://aka.ms/dotnet-core-applaunch?missing_runtime=true&arch=x64&rid=win10-x64&apphost_version=6.0.23&gui=true))
+
 ## Setting it up
 
 The first time you run CS_OBS, it will ask you to:
