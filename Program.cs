@@ -23,41 +23,71 @@ namespace CS_OBS
         [STAThread]
         static void Main()
         {
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CS_OBS_log.txt");
             try
             {
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Application starting...\n");
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Current directory: {Environment.CurrentDirectory}\n");
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Executable path: {Application.ExecutablePath}\n");
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Is running as administrator: {IsUserAdministrator()}\n");
-
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
                 if (!IsUserAdministrator())
                 {
-                    File.AppendAllText(logPath, $"[{DateTime.Now}] Attempting to restart with administrator privileges...\n");
                     RestartAsAdministrator();
                     return;
                 }
 
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Reading config file...\n");
                 ReadConfigFile();
 
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Initializing tray icon...\n");
+                // Check if config exists and OBS path is set
+                bool shouldShowSettings = false;
+                string configPath = ConfigurationManager.GetConfigFilePath();
+
+                if (!File.Exists(configPath))
+                {
+                    shouldShowSettings = true;
+                }
+                else
+                {
+                    // Check if OBS path is configured
+                    string[] configLines = File.ReadAllLines(configPath);
+                    bool obsPathFound = false;
+                    foreach (string line in configLines)
+                    {
+                        if (line.StartsWith("OBS_WORKING_DIR=") && !string.IsNullOrWhiteSpace(line.Split('=')[1]))
+                        {
+                            obsPathFound = true;
+                            break;
+                        }
+                    }
+                    if (!obsPathFound)
+                    {
+                        shouldShowSettings = true;
+                    }
+                }
+
                 InitializeTrayIcon();
 
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Starting process monitor...\n");
+                if (shouldShowSettings)
+                {
+                    settingsForm = new SettingsForm();
+                    settingsForm.IntervalUpdated += UpdateIntervals;
+                    settingsForm.ConfigUpdated += ReadConfigFile;
+                    settingsForm.FormClosed += (s, args) =>
+                    {
+                        settingsForm.Dispose();
+                        settingsForm = null;
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                    };
+                    settingsForm.Show();
+                }
+
                 cts = new CancellationTokenSource();
                 Task.Run(() => MonitorProcessesAsync(cts.Token), cts.Token);
 
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Entering message loop...\n");
                 Application.Run();
             }
             catch (Exception ex)
             {
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Error during startup: {ex}\n");
-                MessageBox.Show($"An error occurred during startup. Please check the error log at {logPath}", "CS_OBS Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("An error occurred during startup.", "CS_OBS Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -80,10 +110,8 @@ namespace CS_OBS
             pauseManager.Unpause();
             trayIcon.ShowBalloonTip(3000, "CS_OBS Unpaused", "Monitoring resumed", ToolTipIcon.Info);
         }
-
         private static void RestartAsAdministrator()
         {
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CS_OBS_log.txt");
             try
             {
                 ProcessStartInfo startInfo = new(Application.ExecutablePath)
@@ -92,11 +120,9 @@ namespace CS_OBS
                     Verb = "runas" // Request elevation
                 };
                 Process.Start(startInfo);
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Successfully requested elevation.\n");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                File.AppendAllText(logPath, $"[{DateTime.Now}] Failed to restart with elevation: {ex}\n");
                 MessageBox.Show("CS_OBS requires administrator privileges to run. Please restart the application as an administrator.", "Elevation Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -274,7 +300,7 @@ namespace CS_OBS
 
         static void ReadConfigFile()
         {
-            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
+            string configFilePath = ConfigurationManager.GetConfigFilePath();
 
             gameProcessNames.Clear();
             foreach (string line in File.ReadAllLines(configFilePath))
@@ -595,7 +621,7 @@ namespace CS_OBS
 
         private void LoadSettings()
         {
-            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
+            string configFilePath = ConfigurationManager.GetConfigFilePath();
             if (File.Exists(configFilePath))
             {
                 string[] lines = File.ReadAllLines(configFilePath);
@@ -689,7 +715,7 @@ namespace CS_OBS
 
         private void SaveSettings(int gameInterval, int obsInterval, string obsWorkingDir)
         {
-            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
+            string configFilePath = ConfigurationManager.GetConfigFilePath();
             string[] lines = File.ReadAllLines(configFilePath).ToList().Where(line => !line.EndsWith(".exe")).ToArray();
 
             for (int i = 0; i < lines.Length; i++)
@@ -1166,6 +1192,66 @@ namespace CS_OBS
 
             string pattern = @"^[a-zA-Z0-9\s\-_]+\.exe$";
             return Regex.IsMatch(name, pattern);
+        }
+    }
+    static class ConfigurationManager
+    {
+        private static string GetConfigDirectory()
+        {
+            string appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "CS_OBS"
+            );
+
+            if (!Directory.Exists(appDataPath))
+            {
+                Directory.CreateDirectory(appDataPath);
+            }
+
+            return appDataPath;
+        }
+
+        public static string GetConfigFilePath()
+        {
+            string configPath = Path.Combine(GetConfigDirectory(), "config.txt");
+
+            // If config doesn't exist in AppData but exists in exe directory, copy it
+            if (!File.Exists(configPath))
+            {
+                string exeConfigPath = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "config.txt"
+                );
+
+                if (File.Exists(exeConfigPath))
+                {
+                    File.Copy(exeConfigPath, configPath);
+                }
+                else
+                {
+                    // Create default config and show info message
+
+                    File.WriteAllText(configPath, @"# Set intervals between opening/closing the game and opening/closing OBS. 1000 = 1 second. Lower values may potentially increase CPU load
+# Delay before opening OBS after you have opened the game (default: 15000)
+GAME_PROCESS_INTERVAL=15000
+# Delay before closing OBS after you have closed the game (default: 5000)
+OBS_PROCESS_INTERVAL=5000
+
+# Path to your OBS install folder, where the ""obs64.exe"" file is located
+# Example:
+# OBS_WORKING_DIR=C:\Program Files\obs-studio\bin\64bit
+OBS_WORKING_DIR=
+
+# Enable automatic start on boot (1 for enabled, 0 for disabled)
+ADD_TO_STARTUP=0
+
+# Add the names of game executables (process file name), one per line
+# Make sure to include the .exe file extension
+");
+                }
+            }
+
+            return configPath;
         }
     }
 }
