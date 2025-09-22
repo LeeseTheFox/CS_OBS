@@ -39,8 +39,6 @@ CS_OBS is a lightweight Linux utility that automatically starts and stops OBS wi
    python3 cs_obs.py
    ```
 
-> **Note on Releases:** We don't provide binary releases because CS_OBS is a Python application that's best run from source. This allows for easy customization and ensures compatibility with your specific Linux distribution's package versions.
-
 ## Usage
 
 1.  **Configure the application:**
