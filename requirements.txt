@@ -1,0 +1,7 @@
+psutil==7.0.0
+pystray==0.19.5
+Pillow==11.3.0
+PyGObject==3.52.3
+pycairo==1.28.0
+python-xlib==0.33
+six==1.17.0 
