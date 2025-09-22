@@ -1,15 +1,18 @@
 # CS_OBS: Automatic OBS Launcher
 
-CS_OBS is a lightweight, cross-platform utility that automatically starts and stops OBS with the Replay Buffer enabled when you start playing a game. It's designed to be simple, efficient, and easy to configure.
+CS_OBS is a lightweight Linux utility that automatically starts and stops OBS with the Replay Buffer enabled when you start playing a game. It serves as a flexible replacement for Nvidia ShadowPlay, giving you the power and customization of OBS Studio with automatic game detection. The application is designed to be simple, efficient, and easy to configure.
+
+**Note:** While Windows support exists in the code, this application is primarily developed and tested on Linux. Windows functionality is untested.
 
 ## Features
 
+- **ShadowPlay Replacement:** A flexible alternative to Nvidia ShadowPlay that works with any graphics card and gives you the full power of OBS Studio.
 - **Automatic OBS Control:** Automatically launches OBS with the Replay Buffer when a whitelisted game starts, and closes it when the game stops.
 - **Whitelist System:** You have full control over which games trigger OBS to launch.
 - **Process Picker:** A user-friendly process picker to easily add running games to your whitelist.
 - **Manual Control:** Add and remove games from the whitelist manually.
 - **System Tray Integration:** The application runs in the system tray for easy access and minimal intrusion.
-- **Cross-Platform:** Works on both Windows and Linux.
+- **Linux-Focused:** Developed and tested primarily on Linux, with automatic detection of Flatpak and system OBS installations.
 
 ## Getting Started
 
@@ -57,9 +60,11 @@ The `config.json` file is automatically created in the same directory as the app
 }
 ```
 
--   `obs_path`: The absolute path to your OBS executable.
-    -   **Windows Example:** `"C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"`
-    -   **Linux Example:** `"obs"` (if it's in your system's PATH) or `/usr/bin/obs`
--   `whitelisted_games`: A list of game process names that will trigger the scene switch.
-    -   On **Windows**, this should be the executable name (e.g., `"Discovery.exe"`).
-    -   On **Linux**, if we're dealing with a native Linux game, typically the process name has no pre-defined extension (e.g., `"Crab Game.x86_64"`). If the game is running via Proton, you should include the .exe extension.
+-   `obs_path`: The path to your OBS executable.
+    -   **Linux (System):** `"obs"` (if it's in your system's PATH) or `/usr/bin/obs`
+    -   **Linux (Flatpak):** `"flatpak run com.obsproject.Studio"` (auto-detected)
+    -   **Windows (untested):** `"C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"`
+-   `whitelisted_games`: A list of game process names that will trigger OBS to launch.
+    -   **Native Linux games:** Typically no extension (e.g., `"csgo"`, `"Crab Game.x86_64"`)
+    -   **Proton/Wine games:** Include the .exe extension (e.g., `"Discovery.exe"`)
+    -   **Windows games (untested):** Executable name with .exe extension
