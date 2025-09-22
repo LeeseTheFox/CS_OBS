@@ -14,35 +14,41 @@ CS_OBS is a lightweight Linux utility that automatically starts and stops OBS wi
 - **System Tray Integration:** The application runs in the system tray for easy access and minimal intrusion.
 - **Linux-Focused:** Developed and tested primarily on Linux, with automatic detection of Flatpak and system OBS installations.
 
-## Getting Started
+## Installation
 
-### Prerequisites
+1. **Download the repository:** Either download as ZIP from GitHub or clone with `git clone https://github.com/LeeseTheFox/CS_OBS.git`
 
-- **Python 3:** Make sure you have Python 3 installed on your system.
-- **OBS Studio:** The application requires OBS Studio to be installed.
-- **Python Dependencies:** Install the required Python packages:
-  ```sh
-  pip install -r requirements.txt
-  ```
-- **PyGObject:** Required for system tray functionality on Linux with Wayland. On some systems, you may need to install additional system packages:
-  ```sh
-  # Fedora
-  sudo dnf install python3-gobject gtk3
-  # Ubuntu/Debian
-  sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0
-  ```
+2. **Install system dependencies:**
+   ```bash
+   # Fedora
+   sudo dnf install python3-pip python3-gobject gtk3 python3-tkinter
+   
+   # Ubuntu/Debian  
+   sudo apt install python3-pip python3-gi python3-gi-cairo gir1.2-gtk-3.0 python3-tkinter
+   ```
+
+3. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Install OBS Studio** (if not already installed)
+
+5. **Run the application:**
+   ```bash
+   python3 cs_obs.py
+   ```
+
+> **Note on Releases:** We don't provide binary releases because CS_OBS is a Python application that's best run from source. This allows for easy customization and ensures compatibility with your specific Linux distribution's package versions.
 
 ## Usage
 
-1.  **Run the application:**
-    ```sh
-    python3 cs_obs.py
-    ```
-2.  **Configure the application:**
+1.  **Configure the application:**
     - The first time you run the application, it will create a `config.json` file.
     - Add the games you want to be whitelisted using the "Process picker" or by adding them manually.
     - Click "Start the service" to begin monitoring for game launches.
-3.  **System Tray:**
+
+2.  **System Tray:**
     - The application will run in the system tray.
     - Right-click the tray icon to show/hide the main window or quit the application.
 
