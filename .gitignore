@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -39,3 +39,4 @@ Thumbs.db
 
 # Application specific
 actions.log
+config.json
