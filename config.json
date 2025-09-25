@@ -1,6 +1,6 @@
 {
-    "obs_path": "flatpak run com.obsproject.Studio",
+    "obs_path": "/your/path/to/obs/",
     "whitelisted_games": [
-        "Discovery.exe"
+        "example.exe"
     ]
 }
