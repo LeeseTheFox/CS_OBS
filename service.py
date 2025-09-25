@@ -5,6 +5,7 @@ import psutil
 import os
 import platform
 import shlex
+import shutil
 
 # Get the absolute path of the directory containing the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -150,22 +151,54 @@ def get_obs_process():
     
     return None
 
+def cleanup_obs_sentinel():
+    """Removes the .sentinel directory from OBS config directory to prevent shutdown warnings."""
+    system = platform.system()
+    config_dirs = []
+    
+    if system == "Linux":
+        # Check both regular and Flatpak OBS locations
+        config_dirs = [
+            os.path.expanduser("~/.config/obs-studio"),
+            os.path.expanduser("~/.var/app/com.obsproject.Studio/config/obs-studio")
+        ]
+    elif system == "Windows":
+        config_dirs = [os.path.expanduser("~/AppData/Roaming/obs-studio")]
+    elif system == "Darwin":  # macOS
+        config_dirs = [os.path.expanduser("~/Library/Application Support/obs-studio")]
+    
+    for config_dir in config_dirs:
+        if config_dir and os.path.exists(config_dir):
+            sentinel_path = os.path.join(config_dir, ".sentinel")
+            if os.path.exists(sentinel_path):
+                try:
+                    if os.path.isdir(sentinel_path):
+                        shutil.rmtree(sentinel_path)
+                        print(f"Removed OBS .sentinel directory from {config_dir}")
+                    else:
+                        os.remove(sentinel_path)
+                        print(f"Removed OBS .sentinel file from {config_dir}")
+                except OSError as e:
+                    print(f"Warning: Could not remove .sentinel from {config_dir}: {e}")
+
 def start_obs(obs_path):
     """Starts OBS and returns the OBS process object."""
     print("Starting OBS...")
+    
+    # Clean up sentinel file to prevent shutdown warnings (OBS 32.0+ compatibility)
+    cleanup_obs_sentinel()
+    
     try:
         # Handle Flatpak commands properly by splitting the command
         if obs_path.startswith('flatpak run'):
             command = shlex.split(obs_path) + [
                 '--startreplaybuffer',
-                '--disable-shutdown-check',
                 '--minimize-to-tray'
             ]
         else:
             command = [
                 obs_path,
                 '--startreplaybuffer',
-                '--disable-shutdown-check',
                 '--minimize-to-tray'
             ]
         
