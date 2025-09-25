@@ -1,6 +1,0 @@
-{
-    "obs_path": "/your/path/to/obs/",
-    "whitelisted_games": [
-        "example.exe"
-    ]
-}
