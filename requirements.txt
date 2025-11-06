@@ -1,3 +1,7 @@
+# Note: On immutable systems like Bazzite/Silverblue, use system packages for PyGObject and pycairo
+# Create venv with: python3 -m venv --system-site-packages .venv
+# Then install only: pip install pystray==0.19.5
+
 psutil==7.0.0
 pystray==0.19.5
 Pillow==11.3.0

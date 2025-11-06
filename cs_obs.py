@@ -10,6 +10,7 @@ import pystray
 import threading
 import warnings
 import platform
+import queue
 
 # --- Configuration ---
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +70,10 @@ class ConfigManagerApp(tk.Tk):
         self.config = self.load_config()
         self.monitor_process = None
         self.tray_icon = None
+        
+        # Queue for thread-safe communication from pystray to Tkinter
+        self.action_queue = queue.Queue()
+        self._process_action_queue()
 
         # --- UI Elements ---
         # Frame for game list
@@ -202,11 +207,33 @@ class ConfigManagerApp(tk.Tk):
             pystray.MenuItem('Quit', self.quit_application_from_tray)
         )
         self.tray_icon = pystray.Icon("cs-obs", image, "CS_OBS", menu)
+        
         # Run the icon in a separate thread
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
 
-    def toggle_window_visibility(self):
+    def _process_action_queue(self):
+        """Process actions from the queue (called periodically in main thread)."""
+        try:
+            while True:
+                action = self.action_queue.get_nowait()
+                
+                if action == "toggle_visibility":
+                    self._do_toggle_window_visibility()
+                elif action == "quit":
+                    self.quit_application()
+        except queue.Empty:
+            pass
+        
+        # Schedule next check
+        self.after(100, self._process_action_queue)
+    
+    def toggle_window_visibility(self, icon=None, item=None):
         """Shows or hides the main window."""
+        # Put action in queue for main thread to process
+        self.action_queue.put("toggle_visibility")
+    
+    def _do_toggle_window_visibility(self):
+        """Internal method to toggle window visibility (runs in main thread)."""
         if self.state() == 'normal':
             self.hide_window()
         else:
@@ -214,7 +241,7 @@ class ConfigManagerApp(tk.Tk):
 
     def show_window(self):
         """Shows and focuses the main window."""
-        self.after(0, self.deiconify)
+        self.deiconify()
         self.after(10, self.lift) # Bring to front
         self.after(20, self.focus_force)
 
@@ -222,10 +249,10 @@ class ConfigManagerApp(tk.Tk):
         """Hides the main window."""
         self.withdraw()
 
-    def quit_application_from_tray(self):
+    def quit_application_from_tray(self, icon=None, item=None):
         """A wrapper to call quit_application from the tray menu."""
-        # This ensures the call is scheduled for the main tkinter thread
-        self.after(0, self.quit_application)
+        # Put action in queue for main thread to process
+        self.action_queue.put("quit")
 
     def quit_application(self):
         """Handles the logic of properly quitting the application."""
